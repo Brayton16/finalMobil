@@ -5,7 +5,7 @@ import { EstudianteScreen } from './home';
 import { NotasScreen } from './notas';
 import { HorarioScreen } from './horario';
 import { AsignacionesScreen } from './asignaciones';
-import { GruposScreen } from './grupos';
+import { GruposStack } from './gruposStack';
 import CustomDrawerContent from '../../components/customDrawerContent';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -22,7 +22,7 @@ export default function EstudianteMenu() {
           }}
         >
             <Drawer.Screen name="Inicio" component={EstudianteScreen} options={{ drawerIcon: () => <Icon name="home" size={20} /> }} />
-            <Drawer.Screen name="Grupos" component={GruposScreen} options={{ drawerIcon: () => <Icon name="users" size={20} /> }} />
+            <Drawer.Screen name="Grupos" component={GruposStack} options={{ drawerIcon: () => <Icon name="users" size={20} /> }} />
             <Drawer.Screen name="Asignaciones" component={AsignacionesScreen} options={{ drawerIcon: () => <Icon name="tasks" size={20} /> }} />
             <Drawer.Screen name="Notas" component={NotasScreen} options={{ drawerIcon: () => <Icon name="graduation-cap" size={20} /> }} />
             <Drawer.Screen name="Horario" component={HorarioScreen} options={{ drawerIcon: () => <Icon name="calendar" size={20} /> }} />
@@ -30,16 +30,3 @@ export default function EstudianteMenu() {
       );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-});
