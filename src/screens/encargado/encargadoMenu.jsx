@@ -3,7 +3,8 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import CustomDrawerContent from '../../components/customDrawerContent';
 import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-
+import { DetalleStack } from './detalleEstudianteStack';
+import { EncargadoInicioScreen } from './home'
 const Drawer = createDrawerNavigator();
 
 const ScreenComponent = ({ title }) => (
@@ -22,11 +23,36 @@ export default function EncargadoMenu() {
         drawerLabelStyle: { fontSize: 16, fontWeight: 'bold' },
       }}
     >
-      <Drawer.Screen name="Grupos" component={() => <ScreenComponent title="Grupos Supervisados" />} options={{ drawerIcon: () => <Icon name="users" size={20} /> }} />
-      <Drawer.Screen name="Asignaciones" component={() => <ScreenComponent title="Asignaciones Supervisadas" />} options={{ drawerIcon: () => <Icon name="tasks" size={20} /> }} />
-      <Drawer.Screen name="Notas" component={() => <ScreenComponent title="Notas de Estudiantes" />} options={{ drawerIcon: () => <Icon name="graduation-cap" size={20} /> }} />
-      <Drawer.Screen name="Horario" component={() => <ScreenComponent title="Horario de Supervisados" />} options={{ drawerIcon: () => <Icon name="calendar" size={20} /> }} />
-      <Drawer.Screen name="Chats (Beta)" component={() => <ScreenComponent title="Chats (Beta)" />} options={{ drawerIcon: () => <Icon name="comments" size={20} /> }} />
+      <Drawer.Screen 
+        name="Inicio"
+        component={EncargadoInicioScreen}
+        options={{ drawerIcon: () => <Icon name="home" size={20} /> }}
+      />
+      <Drawer.Screen 
+        name="Mis Estudiantes" 
+        component={DetalleStack} 
+        options={{ drawerIcon: () => <Icon name='users' size={20}/>}} 
+      />
+      {/* <Drawer.Screen 
+        name="Grupos" 
+        component={() => <ScreenComponent title="Grupos Supervisados" />} 
+        options={{ drawerIcon: () => <Icon name="users" size={20} /> }} 
+      /> */}
+      <Drawer.Screen 
+        name="Asignaciones" 
+        component={() => <ScreenComponent title="Asignaciones Supervisadas" />} 
+        options={{ drawerIcon: () => <Icon name="tasks" size={20} /> }} 
+      />
+      <Drawer.Screen 
+        name="Notas" 
+        component={() => <ScreenComponent title="Notas de Estudiantes" />} 
+        options={{ drawerIcon: () => <Icon name="graduation-cap" size={20} /> }} 
+      />
+      <Drawer.Screen 
+        name="Chats (Beta)" 
+        component={() => <ScreenComponent title="Chats (Beta)" />} 
+        options={{ drawerIcon: () => <Icon name="comments" size={20} /> }} 
+      />
     </Drawer.Navigator>
   );
 }

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-nativ
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getEstudiantesBySeccion } from '../../services/estudiantesService';
-
+import { getEncargadoById } from '../../services/encargadosService';
 export function ListaEstudiantesScreen() {
     const [estudiantes, setEstudiantes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -25,7 +25,9 @@ export function ListaEstudiantesScreen() {
                     return;
                 }
 
-                console.log('👥 Estudiantes obtenidos:', response.estudiantes);
+                console.log("Estudiantes obtenidos:", response);
+
+
                 setEstudiantes(response.estudiantes);
             } catch (error) {
                 console.error('Error al obtener los estudiantes:', error);
