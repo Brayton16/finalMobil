@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export function DetalleAsignacionScreen() {
     const route = useRoute();
     const navigation = useNavigation();
-    const { asignacion } = route.params || {};
+    const { asignacion, estudianteId } = route.params || {};
     
     const [loading, setLoading] = useState(true);
     const [detalleAsignacion, setDetalleAsignacion] = useState(null);
@@ -24,18 +24,14 @@ export function DetalleAsignacionScreen() {
 const fetchData = async () => {
     try {
         setLoading(true);
-        const estudianteId = await AsyncStorage.getItem('userId');
-
         // Obtener la asignación con detalles completos
         const nuevaAsignacion = await obtenerAsignacionById(asignacion.id);
         setDetalleAsignacion(nuevaAsignacion);
 
         // Obtener todas las entregas del estudiante
-        const todasLasEntregas = await getEntregasByEstudiante(estudianteId, nuevaAsignacion.idGrupoCurso);
+        const todasLasEntregas = await getEntregasByEstudiante(estudianteId);
         // Filtrar la entrega correspondiente a esta asignación
-        
         const entregaRelacionada = todasLasEntregas.find(ent => ent.idAsignacion === asignacion.id) || null;
-
         setEntrega(entregaRelacionada);
 
     } catch (error) {
@@ -127,24 +123,6 @@ const fetchData = async () => {
             )}
 
             {/* 📌 Estado de la Entrega */}
-            {puedeEntregar ? (
-                <View style={styles.card}>
-                    <Text style={styles.subTitle}>Entrega</Text>
-                        <>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Pega el link de tu entrega aquí..."
-                                value={linkEntrega}
-                                onChangeText={setLinkEntrega}
-                            />
-                            <TouchableOpacity style={styles.button} onPress={handleEntregarTarea}>
-                                <Text style={styles.buttonText}>📤 Entregar</Text>
-                            </TouchableOpacity>
-                        </>
-                </View>
-            ) : (
-                <></>
-            )}
             <View style={styles.card}>
                 <Text style={styles.subTitle}>Entrega</Text>
                 {entrega ? (

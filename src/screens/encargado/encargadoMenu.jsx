@@ -5,13 +5,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { DetalleStack } from './detalleEstudianteStack';
 import { EncargadoInicioScreen } from './home'
+import { PendientesStack } from './pendientesStack';
+import { NotasStack } from './notasStack';
+import { ChatsStack } from './chatsStack';
+import AnunciosScreen from './anunciosGeneral';
 const Drawer = createDrawerNavigator();
-
-const ScreenComponent = ({ title }) => (
-  <View style={styles.screen}>
-    <Text style={styles.title}>{title}</Text>
-  </View>
-);
 
 export default function EncargadoMenu() {
   return (
@@ -40,17 +38,22 @@ export default function EncargadoMenu() {
       /> */}
       <Drawer.Screen 
         name="Asignaciones" 
-        component={() => <ScreenComponent title="Asignaciones Supervisadas" />} 
+        component={PendientesStack} 
         options={{ drawerIcon: () => <Icon name="tasks" size={20} /> }} 
       />
       <Drawer.Screen 
         name="Notas" 
-        component={() => <ScreenComponent title="Notas de Estudiantes" />} 
+        component={NotasStack} 
         options={{ drawerIcon: () => <Icon name="graduation-cap" size={20} /> }} 
       />
       <Drawer.Screen 
-        name="Chats (Beta)" 
-        component={() => <ScreenComponent title="Chats (Beta)" />} 
+        name="Anuncios" 
+        component={AnunciosScreen} 
+        options={{ drawerIcon: () => <Icon name="bullhorn" size={20} /> }} 
+      />
+      <Drawer.Screen 
+        name="Chats" 
+        component={ChatsStack} 
         options={{ drawerIcon: () => <Icon name="comments" size={20} /> }} 
       />
     </Drawer.Navigator>

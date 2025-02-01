@@ -17,11 +17,11 @@ export function DetalleCursoScreen() {
     }
 
     const handleNavigateToAssignments = () => {
-        navigation.navigate('AsignacionesEstudiante', { curso, estudiante });
+        navigation.navigate('AsignacionesEstudiante', { grupo:curso, estudiante });
     };
 
     const handleNavigateToNotes = () => {
-        navigation.navigate('NotasEstudiante', { curso, estudiante });
+        navigation.navigate('NotasEstudianteCurso', { grupo: curso, estudiante });
     };
 
     const handleNavigateToChatProfesor = () => {

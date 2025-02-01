@@ -14,7 +14,7 @@ import { getGrupoCursoById } from '../../services/grupoCursoService';
 export default function CursoNotasScreen() {
     const navigation = useNavigation();
     const route = useRoute();
-    const { grupo } = route.params || {}; // 📌 Obtener ID del grupo desde route.params
+    const { grupo, estudiante } = route.params || {}; // 📌 Obtener ID del grupo desde route.params
 
     const [curso, setCurso] = useState(null);
     const [notas, setNotas] = useState([]);
@@ -28,17 +28,17 @@ export default function CursoNotasScreen() {
             setLoading(true);
             setRefreshing(true);
 
-            const estudianteId = await AsyncStorage.getItem('userId');
+            const estudianteId = estudiante.id
 
-            const grupoCurso = await getGrupoCursoById(grupo);
+            const grupoCurso = await getGrupoCursoById(grupo.idGrupoCurso);
 
             // Obtener información del curso
             const cursoData = await getCursoById(grupoCurso.idCurso);
             setCurso(cursoData);
 
             // Obtener asignaciones y entregas del estudiante
-            const asignaciones = await obtenerAsignacionesByGrupo(grupo);
-            const entregas = await getEntregasByEstudiante(estudianteId, grupo);
+            const asignaciones = await obtenerAsignacionesByGrupo(grupo.idGrupoCurso);
+            const entregas = await getEntregasByEstudiante(estudianteId, grupo.idGrupoCurso);
 
             // Calcular notas
             const notasCalculadas = calcularNotas(asignaciones, entregas, cursoData);
@@ -157,7 +157,7 @@ export default function CursoNotasScreen() {
                                     return (
                                         <TouchableOpacity 
                                             style={styles.asignacionItem}
-                                            onPress={() => navigation.navigate("DetalleAsignacion", { asignacion })}
+                                            onPress={() => navigation.navigate("DetalleAsignacion", { asignacion, estudianteId: estudiante.id })}
                                         >
                                             <Text>{asignacion.titulo}</Text>
                                             <Text>

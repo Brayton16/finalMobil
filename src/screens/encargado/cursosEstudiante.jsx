@@ -10,7 +10,9 @@ export function CursosEstudianteScreen() {
     const [isLoading, setIsLoading] = useState(true);
     const navigation = useNavigation();
     const route = useRoute();
-    const { estudiante } = route.params || {};
+    const { curso, estudiante } = route.params || {};
+    console.log("Estudiante:", estudiante);
+    console.log("Curso:", curso);
 
     useEffect(() => {
         if (!estudiante) {

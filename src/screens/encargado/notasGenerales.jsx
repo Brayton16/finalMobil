@@ -1,52 +1,60 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, RefreshControl } from 'react-native';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { getGruposByEstudiante } from '../../services/grupoCursoService';
 import { obtenerAsignacionesByGrupo } from '../../services/asignacionesService';
 import { getEntregasByEstudiante } from '../../services/entregasService';
 import { getCursoById } from '../../services/cursosService';
-import { getEstudianteById } from '../../services/estudiantesService';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { getEstudiantesByEncargado } from '../../services/encargadosService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
-export function NotasScreen() {
+export function NotasGeneralesScreen() {
     const navigation = useNavigation();
-
     const [grupos, setGrupos] = useState([]);
     const [notasPorGrupo, setNotasPorGrupo] = useState({});
     const [loading, setLoading] = useState(true);
     const [expandedGroups, setExpandedGroups] = useState([]);
     const [expandedTipos, setExpandedTipos] = useState({});
-    const [estudiante, setEstudiante] = useState(null);
-    const [refreshing, setRefreshing] = useState(false); // Pull-to-refresh
+    const [refreshing, setRefreshing] = useState(false);
     const [loadingGrupo, setLoadingGrupo] = useState(false);
-    // 🔄 **Cargar los datos al montar la pantalla**
+    const [estudiantes, setEstudiantes] = useState([]);
+
+    // 🔄 **Cargar datos al montar la pantalla**
     const fetchData = async () => {
         try {
             setRefreshing(true);
             setLoading(true);
 
-            const estudianteId = await AsyncStorage.getItem('userId');
-            const estudiante = await getEstudianteById(estudianteId);
-            const response = await getGruposByEstudiante(estudianteId);
-            setLoadingGrupo(true);
+            const encargadoId = await AsyncStorage.getItem('userId');
+            const estudiantesData = await getEstudiantesByEncargado(encargadoId);
+            setEstudiantes(estudiantesData);
 
-            setEstudiante(estudiante);
-            setGrupos(response);
+            let gruposUnicos = new Map();
+            let notasData = {};
 
-            // Cargar las notas para cada grupo
-            const notasData = {};
-            for (let grupo of response) {
-                const asignaciones = await obtenerAsignacionesByGrupo(grupo.idGrupoCurso);
-                const entregas = await getEntregasByEstudiante(estudianteId, grupo.idGrupoCurso);
-                const curso = await getCursoById(grupo.idCurso);
+            for (let estudiante of estudiantesData) {
+                const gruposEstudiante = await getGruposByEstudiante(estudiante.id);
+                
+                for (let grupo of gruposEstudiante) {
+                    grupo.estudianteNombre = estudiante.nombre
+                    grupo.estudianteApellido = estudiante.apellido
+                    grupo.estudianteId = estudiante.id
+                    if (!gruposUnicos.has(grupo.idGrupoCurso)) {
+                        gruposUnicos.set(grupo.idGrupoCurso, grupo);
+                        const asignaciones = await obtenerAsignacionesByGrupo(grupo.idGrupoCurso);
+                        const entregas = await getEntregasByEstudiante(estudiante.id, grupo.idGrupoCurso);
+                        const curso = await getCursoById(grupo.idCurso);
 
-                notasData[grupo.idGrupoCurso] = {
-                    notas: calcularNotas(asignaciones, entregas, curso),
-                    notaFinal: calcularNotaFinal(asignaciones, entregas, curso),
-                };
+                        notasData[grupo.idGrupoCurso] = {
+                            notas: calcularNotas(asignaciones, entregas, curso),
+                            notaFinal: calcularNotaFinal(asignaciones, entregas, curso),
+                        };
+                    }
+                }
             }
 
+            setGrupos(Array.from(gruposUnicos.values()));
             setNotasPorGrupo(notasData);
         } catch (error) {
             console.error("Error obteniendo los grupos y notas:", error);
@@ -128,8 +136,8 @@ export function NotasScreen() {
         return '#F44336';
     };
 
-    if(loading) {
-        return <ActivityIndicator size="large" color="#0000ff" style={styles.loading}/>;
+    if (loading) {
+        return <ActivityIndicator size="large" color="#0000ff" style={styles.loading} />;
     }
 
     return (
@@ -140,11 +148,15 @@ export function NotasScreen() {
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
-                        onRefresh={toggleGroupExpansion}
+                        onRefresh={fetchData}
                     />
                 }
-                renderItem={({ item: grupo }) => (
+                renderItem={({ item: grupo }) => {
+                    const estudiante = `${grupo.estudianteNombre} ${grupo.estudianteApellido}` || "";
+                    const estudianteId = grupo.estudianteId
+                    return (
                     <View style={styles.card}>
+                        <Text style={styles.estudianteNombre}>Estudiante: {estudiante}</Text>
                         <TouchableOpacity style={styles.groupHeader} onPress={() => toggleGroupExpansion(grupo.idGrupoCurso)}>
                             <Text style={styles.groupTitle}>{grupo.curso.nombre} - {grupo.seccion.nivel}° Grado</Text>
                             {notasPorGrupo[grupo.idGrupoCurso] && (
@@ -153,52 +165,56 @@ export function NotasScreen() {
                             <Icon name={expandedGroups.includes(grupo.idGrupoCurso) ? "minus-circle" : "plus-circle"} size={20} color="#2563eb" />
                         </TouchableOpacity>
 
-                        {loadingGrupo === grupo.idGrupoCurso ? (
-                            <ActivityIndicator size="small" color="#2563eb" />
-                        ) : (
-                            expandedGroups.includes(grupo.idGrupoCurso) &&
-                            notasPorGrupo[grupo.idGrupoCurso] && (
-                                <FlatList
-                                    data={notasPorGrupo[grupo.idGrupoCurso].notas}
-                                    keyExtractor={(item) => item.tipo}
-                                    renderItem={({ item }) => (
-                                        <View style={styles.notaItemContainer}>
-                                            <TouchableOpacity style={styles.notaItem} onPress={() => toggleTipoExpansion(grupo.idGrupoCurso, item.tipo)}>
-                                                <Text style={styles.notaTipo}>{item.tipo}</Text>
-                                                <View style={[styles.progressBar, { borderBottomColor: getBarColor(item.obtenido, item.total) }]} />
-                                                <Text style={styles.notaTotal}>{item.obtenido.toFixed(1)} / {item.total}</Text>
-                                            </TouchableOpacity>
+                        {expandedGroups.includes(grupo.idGrupoCurso) &&
+                        notasPorGrupo[grupo.idGrupoCurso] && (
+                            <FlatList
+                                data={notasPorGrupo[grupo.idGrupoCurso].notas}
+                                keyExtractor={(item) => item.tipo}
+                                renderItem={({ item }) => (
+                                    <View style={styles.notaItemContainer}>
+                                        <TouchableOpacity style={styles.notaItem} onPress={() => toggleTipoExpansion(grupo.idGrupoCurso, item.tipo)}>
+                                            <Text style={styles.notaTipo}>{item.tipo}</Text>
+                                            <View style={[styles.progressBar, { borderBottomColor: getBarColor(item.obtenido, item.total) }]} />
+                                            <Text style={styles.notaTotal}>{item.obtenido.toFixed(1)} / {item.total}</Text>
+                                        </TouchableOpacity>
+                                        {expandedTipos[`${grupo.idGrupoCurso}-${item.tipo}`] && (
+                                            <FlatList
+                                                data={item.asignaciones}
+                                                keyExtractor={(asignacion) => asignacion.id}
+                                                renderItem={({ item: asignacion }) => {
+                                                    const entrega = item.entregas.find(e => e.idAsignacion === asignacion.id);
+                                                    const fechaEntrega = new Date(asignacion.fechaEntrega);
+                                                    const ahora = new Date();
+                                                    const puedeEntregar = ahora <= fechaEntrega;
 
-                                            {expandedTipos[`${grupo.idGrupoCurso}-${item.tipo}`] && (
-                                                <FlatList
-                                                    data={item.asignaciones}
-                                                    keyExtractor={(asignacion) => asignacion.id}
-                                                    renderItem={({ item: asignacion }) => {
-                                                        const entrega = item.entregas.find(e => e.idAsignacion === asignacion.id);
-                                                        return (
-                                                            <TouchableOpacity 
-                                                              style={styles.asignacionItem}
-                                                              onPress={() => navigation.navigate("DetalleAsignacion", { asignacion })}
-                                                            >
-                                                                <Text>{asignacion.titulo}</Text>
-                                                                <Text>{entrega ? `${entrega.calificacion}/100` : "No entregado"}</Text>
-                                                            </TouchableOpacity>
-                                                        );
-                                                    }}
-                                                />
-                                            )}
-                                        </View>
-                                    )}
-                                />
-                            )
+                                                    return (
+                                                        <TouchableOpacity 
+                                                            style={styles.asignacionItem}
+                                                            onPress={() => navigation.navigate("DetalleAsignacion", { asignacion, estudianteId})}
+                                                        >
+                                                            <Text>{asignacion.titulo}</Text>
+                                                            <Text>
+                                                                {entrega 
+                                                                    ? `${entrega.calificacion}/100` 
+                                                                    : puedeEntregar 
+                                                                        ? "Pendiente" 
+                                                                        : "No entregado"}
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                    );
+                                                }}
+                                            />
+                                        )}
+                                    </View>
+                                )}
+                            />
                         )}
                     </View>
-                )}
+                )}}
             />
         </View>
     );
 }
-
 
 const styles = StyleSheet.create({
     container: {
@@ -210,8 +226,15 @@ const styles = StyleSheet.create({
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-  },
-    card: {
+    },
+    estudianteNombre: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#2563eb",
+        marginBottom: 5,
+        textAlign: "left",
+    },
+        card: {
         backgroundColor: '#fff',
         padding: 15,
         borderRadius: 10,
@@ -269,5 +292,4 @@ const styles = StyleSheet.create({
   },
 });
 
-
-export default NotasScreen;
+export default NotasGeneralesScreen;
