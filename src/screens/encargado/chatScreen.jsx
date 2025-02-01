@@ -50,7 +50,7 @@ export function ChatScreen() {
         fetchMessages();
 
         // 🔄 **Auto-refresh cada 5 segundos**
-        const interval = setInterval(fetchMessages, 1000);
+        const interval = setInterval(fetchMessages, 10000);
 
         return () => clearInterval(interval); // 🛑 Limpiar el intervalo al desmontar
     }, [profesorId]);
