@@ -50,19 +50,11 @@ export function ChatScreen() {
         fetchMessages();
 
         // 🔄 **Auto-refresh cada 5 segundos**
-        const interval = setInterval(fetchMessages, 5000);
+        const interval = setInterval(fetchMessages, 1000);
 
         return () => clearInterval(interval); // 🛑 Limpiar el intervalo al desmontar
     }, [profesorId]);
 
-    useEffect(() => {
-        // 📌 Desplazar al final cuando los mensajes cambian
-        if (flatListRef.current) {
-            setTimeout(() => {
-                flatListRef.current?.scrollToEnd({ animated: true });
-            }, 100);
-        }
-    }, [messages]); // Se activa cuando hay nuevos mensajes
 
     const handleSendMessage = async () => {
         if (!newMessage.trim()) return;
