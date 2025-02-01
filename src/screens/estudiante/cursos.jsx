@@ -61,7 +61,7 @@ export function CursosScreen() {
           <Text style={styles.noCoursesText}>No estás inscrito en ningún curso.</Text>
         ) : (
           cursos.map((curso) => (
-            <TouchableOpacity key={curso.idGrupoCurso} style={styles.card}>
+            <TouchableOpacity key={curso.idGrupoCurso} style={styles.card} onPress={() => navigation.navigate('CursosOpciones', { cursoId: curso.idGrupoCurso })}>
               <Icon name="school" size={40} color="#2563eb" />
               <Text style={styles.cardTitle}>{curso.curso.nombre}</Text>
               <Text style={styles.cardSubtitle}>Nivel {curso.seccion.nivel} - Grupo {curso.seccion.grupo}</Text>

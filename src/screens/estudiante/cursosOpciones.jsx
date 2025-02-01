@@ -1,28 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../../services/firebase';
-export function EstudianteScreen() {
+import { getCursoById } from '../../services/cursosService';
+import { getGrupoCursoById } from '../../services/grupoCursoService';
+export default function CursosOpciones() {
     const [user, setUser] = useState(null);
+    const [curso, setCurso] = useState(null);
     const navigation = useNavigation();
-
+    const route = useRoute();
+    const { cursoId } = route.params || {};
     const handleNavigationToAnnouncements = () => {
-      navigation.navigate('Anuncios'); // Nombre de la pantalla de anuncios en el Drawer
+      navigation.navigate('CursosAnuncios', { grupo: cursoId }); // Nombre de la pantalla de anuncios en el Drawer
     };
 
     const handleNavigateToAssignments = () => {
-      navigation.navigate('Asignaciones'); // Nombre de la pantalla de asignaciones en el Drawer
+      navigation.navigate('CursosAsignaciones', { grupo: cursoId }); // Nombre de la pantalla de asignaciones en el Drawer
     };
   
     const handleNavigateToNotes = () => {
-      navigation.navigate('Notas'); // Nombre de la pantalla de notas en el Drawer
+      navigation.navigate('CursosNotas', { grupo: cursoId }); // Nombre de la pantalla de notas en el Drawer
     };
     
-    const handleNavigateToHorario = () => {
-      navigation.navigate('Horario'); // Nombre de la pantalla de notas en el Drawer
-    };
     
     const fetchUserData = () => {
         return new Promise((resolve, reject) => {
@@ -45,11 +46,17 @@ export function EstudianteScreen() {
         const getUserData = async () => {
             try {
             const userData = await fetchUserData();
+            const grupoData = await getGrupoCursoById(cursoId);
+            const cursoData = await getCursoById(grupoData.idCurso);
             if (userData) {
                 setUser(userData);
-                console.log('Usuario autenticado:', userData);
             } else {
-                console.log('No hay usuario autenticado');
+                Alert.alert('No hay usuario autenticado');
+            }
+            if (cursoData) {
+                setCurso(cursoData);
+            } else {
+                Alert.alert('No se encontró el curso');
             }
             } catch (error) {
             console.error('Error al obtener datos del usuario:', error);
@@ -64,9 +71,9 @@ export function EstudianteScreen() {
         {/* Encabezado */}
         {user ? (
         <View style={styles.header}>
-            <Text style={styles.headerTitle}>¡Hola {user.displayName}!</Text>
+            <Text style={styles.headerTitle}>Curso: {curso.nombre}</Text>
             <Text style={styles.headerSubtitle}>
-            Aquí tienes un resumen de tus actividades
+                Accede a tus asignaciones, notas y anuncios del curso.
             </Text>
         </View>
         ) : (
@@ -99,15 +106,6 @@ export function EstudianteScreen() {
           <Text style={styles.cardTitle}>Notas</Text>
           <Text style={styles.cardDescription}>
             Consulta tus calificaciones y el rendimiento en tus materias.
-          </Text>
-        </TouchableOpacity>
-
-        {/* Sección de Horario */}
-        <TouchableOpacity style={styles.card} onPress={handleNavigateToHorario}>
-          <Icon name="calendar-month" size={40} color="#2563eb" />
-          <Text style={styles.cardTitle}>Horario</Text>
-          <Text style={styles.cardDescription}>
-            Consulta tu horario y tus clases programadas.
           </Text>
         </TouchableOpacity>
       </ScrollView>
